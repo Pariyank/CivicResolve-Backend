@@ -1,0 +1,66 @@
+const express = require('express');
+const router = express.Router();
+const { MessagingResponse } = require('twilio').twiml;
+const Issue = require('../models/issue.model');
+const User = require('../models/user.model');
+const { v4: uuidv4 } = require('uuid');
+
+
+const WHATSAPP_USER_ID = "697fc5c23af0a3eec4e5ca3b"; 
+
+router.post('/incoming', async (req, res) => {
+    const twiml = new MessagingResponse();
+    const incomingMsg = req.body.Body.trim(); // User message
+    const fromNumber = req.body.From;
+
+    console.log(`WhatsApp Message from ${fromNumber}: ${incomingMsg}`);
+
+    // Simple Parsing Logic: "Category: Description"
+    // Example: "Garbage: Pile of trash near main road"
+    
+    if (incomingMsg.includes(':')) {
+        const parts = incomingMsg.split(':');
+        const categoryInput = parts[0].trim(); // "Garbage"
+        const description = parts[1].trim();   // "Pile of trash..."
+
+        // Map input to valid category
+        const validCategories = ["Garbage", "Road Defect", "Water Leak", "Streetlight Outage", "Other"];
+        const category = validCategories.find(c => c.toLowerCase() === categoryInput.toLowerCase()) || "Other";
+
+        try {
+            // Auto-Assign Dept Logic (Same as ReportIssue)
+            const deptMapping = {
+                "Garbage": "Garbage", "Road Defect": "Road Defect", 
+                "Water Leak": "Water Leak", "Streetlight Outage": "Streetlight Outage"
+            };
+            const targetDept = deptMapping[category];
+
+            const newIssue = new Issue({
+                ticketId: `WA-${uuidv4().split('-')[0].toUpperCase()}`, // Unique WhatsApp ID
+                reportedBy: WHATSAPP_USER_ID, // Assigned to Bot User
+                // Default Location (City Center) since WhatsApp text doesn't give GPS easily without complex API
+                location: { type: 'Point', coordinates: [77.2090, 28.6139] }, 
+                ward: "Unknown",
+                category: category,
+                description: `(WhatsApp Report): ${description}`,
+                imageUrl: "https://via.placeholder.com/300?text=No+Image+WhatsApp", // Placeholder
+                status: targetDept ? 'Assigned to Dept' : 'Received',
+                assignedDepartment: targetDept,
+                history: [{ status: 'Received', changedBy: 'WhatsApp Bot', timestamp: new Date() }]
+            });
+
+            await newIssue.save();
+
+            twiml.message(`✅ Ticket Created!\nID: ${newIssue.ticketId}\nCategory: ${category}\nWe are working on it.`);
+        } catch (error) {
+            console.error(error);
+            twiml.message("❌ Server Error. Please try again later.");
+        }
+    } else {
+        twiml.message("👋 Welcome to CivicResolve!\n\nTo report an issue, reply in this format:\n*Category: Description*\n\nExample:\n*Garbage: Trash pile near Market*\n*Road Defect: Big pothole on 5th avenue*");
+    }
+
+    res.type('text/xml').send(twiml.toString());
+});
+
+module.exports = router;

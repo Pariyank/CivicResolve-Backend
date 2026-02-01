@@ -21,18 +21,30 @@ const issueSchema = new mongoose.Schema({
     status: {
         type: String,
         required: true,
-        enum: ['Received', 'Assigned to Dept', 'Assigned to Worker', 'Work In Progress', 'Resolved', 'Work Rejected', 'Closed'],
+        enum: [
+            'Received', 
+            'Assigned to Dept', 
+            'Assigned to Worker', 
+            'Work In Progress', 
+            'Resolved', 
+            'Work Rejected', 
+            'Closed',
+            'Escalated' 
+        ],
         default: 'Received'
     },
     
-    // --- NEW: COST TRANSPARENCY ---
     resolutionCost: { type: Number, default: 0 }, 
 
     assignedDepartment: { type: String }, 
     assignedWorker: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     
     resolutionNote: { type: String },
-    resolutionImageUrl: { type: String },
+    
+    // --- PROOF HANDLING ---
+    resolutionImageUrl: { type: String }, // Current valid proof
+    previousResolutionUrl: { type: String }, // The proof that was rejected/unsatisfied
+    
     rejectionReason: { type: String },
 
     isHazard: { type: Boolean, default: false },

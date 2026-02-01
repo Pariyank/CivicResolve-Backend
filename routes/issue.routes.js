@@ -71,15 +71,22 @@ const assignToDeptHandler = async (req, res) => {
     } catch (error) { res.status(500).json({ message: 'Database Error: ' + error.message }); }
 };
 
+// --- UPDATED: RESET FEEDBACK LOOP ---
 const updateStatusHandler = async (req, res) => {
     try {
-        const { status, resolutionNote, resolutionCost } = req.body; // Added Cost
+        const { status, resolutionNote, resolutionCost } = req.body; 
         const issue = await Issue.findById(req.params.id);
         if (!issue) return res.status(404).json({ message: 'Issue not found' });
 
         issue.status = status;
+        
+        // CRITICAL FIX: If marked Resolved (Re-work done), reset feedback to allow user to vote again
+        if (status === 'Resolved') {
+            issue.citizenFeedback = 'Pending';
+        }
+
         if (resolutionNote) issue.resolutionNote = resolutionNote;
-        if (resolutionCost) issue.resolutionCost = resolutionCost; // Save Cost
+        if (resolutionCost) issue.resolutionCost = resolutionCost;
         if (req.file) issue.resolutionImageUrl = req.file.path;
 
         const officerEmail = req.officer ? req.officer.email : 'Admin';
@@ -92,13 +99,36 @@ const updateStatusHandler = async (req, res) => {
 
 const submitFeedbackHandler = async (req, res) => {
     try {
-        const { feedback } = req.body;
+        const { feedback } = req.body; // 'Satisfied' or 'Unsatisfied'
+        
         const issue = await Issue.findOne({ ticketId: req.params.ticketId });
         if (!issue) return res.status(404).json({ message: 'Issue not found' });
+
         issue.citizenFeedback = feedback;
+
+        // AUTOMATIC ESCALATION & RE-WORK LOGIC
+        if (feedback === 'Unsatisfied') {
+            issue.status = 'Escalated';
+            
+            // Archive old proof and clear current slot
+            if (issue.resolutionImageUrl) {
+                issue.previousResolutionUrl = issue.resolutionImageUrl;
+            }
+            issue.resolutionImageUrl = ""; 
+            
+            issue.history.push({
+                status: 'Escalated',
+                changedBy: 'Citizen (Feedback)',
+                timestamp: new Date()
+            });
+        }
+
         await issue.save();
         res.json({ message: 'Feedback submitted', issue });
-    } catch (error) { res.status(500).json({ message: 'Server error.' }); }
+    } catch (error) {
+        console.error("Feedback Error:", error);
+        res.status(500).json({ message: 'Server error.' });
+    }
 };
 
 const getDeptIssuesHandler = async (req, res) => {
@@ -121,14 +151,20 @@ const assignToWorkerHandler = async (req, res) => {
     } catch (error) { res.status(500).json({ message: error.message }); }
 };
 
+// --- UPDATED: WORKER COMPLETION RESETS FEEDBACK ---
 const workerCompleteHandler = async (req, res) => {
     try {
-        const { note, resolutionCost } = req.body; // Added Cost
+        const { note, resolutionCost } = req.body;
         const issue = await Issue.findById(req.params.id);
+        
         issue.status = 'Resolved';
+        // CRITICAL FIX: Reset feedback loop so citizen sees buttons again
+        issue.citizenFeedback = 'Pending';
+
         issue.resolutionNote = note;
-        if (resolutionCost) issue.resolutionCost = resolutionCost; // Save Cost
+        if (resolutionCost) issue.resolutionCost = resolutionCost;
         if (req.file) issue.resolutionImageUrl = req.file.path;
+        
         issue.history.push({ status: 'Resolved', changedBy: 'Worker' });
         await issue.save();
         res.json(issue);
@@ -195,6 +231,7 @@ const getStatsHandler = async (req, res) => {
     } catch (error) { res.status(500).json({ message: "Error" }); }
 };
 
+// --- ROUTES ---
 router.post('/report', userAuth, upload.single('issueImage'), reportIssueHandler);
 router.post('/check-duplicate', userAuth, checkDuplicateHandler);
 router.get('/my-issues', userAuth, getMyIssuesHandler);
@@ -203,10 +240,12 @@ router.get('/stats', getStatsHandler);
 router.get('/public-map', getPublicMapHandler);
 router.put('/feedback/:ticketId', submitFeedbackHandler);
 
+// Admin
 router.get('/admin/all', adminAuth, getAllIssuesHandler);
 router.put('/assign-dept/:id', adminAuth, assignToDeptHandler);
 router.put('/:id/status', adminAuth, upload.single('resolutionImage'), updateStatusHandler);
 
+// Dept/Worker
 router.get('/dept/all', adminAuth, getDeptIssuesHandler);
 router.get('/worker/tasks', userAuth, getWorkerIssuesHandler);
 router.get('/workers/:dept', adminAuth, getWorkersByDeptHandler);

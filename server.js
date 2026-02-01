@@ -1,42 +1,36 @@
 require('dotenv').config();
-
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
+const bodyParser = require('body-parser'); // Import body-parser
 
-// Connect to the database right away
 connectDB();
-
 const app = express();
 
-// --- FIXED CORS CONFIGURATION ---
-// Notice the square brackets [] creating an array of allowed URLs
 app.use(cors({
     origin: [
-        'http://localhost:3000',                        // Local Development
-        'https://civicresolve-ff157.web.app',           // Live Firebase Frontend
-        'https://civicresolve-ff157.firebaseapp.com'    // Alternate Firebase URL
+        'http://localhost:3000',
+        'https://civicresolve-ff157.web.app',
+        'https://civicresolve-ff157.firebaseapp.com'
     ],
-    credentials: true // Allow cookies/headers
+    credentials: true
 }));
-// --------------------------------
 
-app.use(express.json());
-app.disable('etag'); // Disables caching to prevent 304 errors
+// --- MIDDLEWARE FOR TWILIO ---
+app.use(bodyParser.urlencoded({ extended: false })); // For Twilio
+app.use(express.json()); // For React
+// -----------------------------
 
+app.disable('etag');
 
-// --- Define All API Routes Here ---
-app.use('/api/issues', require('./routes/issue.routes')); // For handling issues
-app.use('/api/auth', require('./routes/auth.routes'));     // For admin login/registration
-app.use('/api/users', require('./routes/user.routes'));     // For user login/registration
+app.use('/api/issues', require('./routes/issue.routes'));
+app.use('/api/auth', require('./routes/auth.routes'));
+app.use('/api/users', require('./routes/user.routes'));
+app.use('/api/whatsapp', require('./routes/whatsapp.routes')); // NEW
 
-
-// A default route for testing if the server is up
 app.get('/', (req, res) => {
     res.send('CivicResolve API is running...');
 });
 
-
-// Start the server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
