@@ -1,0 +1,91 @@
+const { Client, LocalAuth } = require('whatsapp-web.js');
+const qrcode = require('qrcode-terminal');
+const Issue = require('../models/issue.model');
+const { v4: uuidv4 } = require('uuid');
+
+// --- CONFIGURATION ---
+// Paste the Dummy User ID you created earlier (e.g., the ID of "WhatsApp Bot User")
+const WHATSAPP_USER_ID = "697fc5c23af0a3eec4e5ca3b"; 
+
+const client = new Client({
+    authStrategy: new LocalAuth(), // Saves login so you don't rescan QR every time
+    puppeteer: {
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox'] // Required for some hosting environments
+    }
+});
+
+const initializeWhatsAppBot = () => {
+    
+    // 1. Generate QR Code
+    client.on('qr', (qr) => {
+        console.log('Scan this QR Code with your WhatsApp to login:');
+        qrcode.generate(qr, { small: true });
+    });
+
+    // 2. Client Ready
+    client.on('ready', () => {
+        console.log('✅ WhatsApp Bot is Ready!');
+    });
+
+    // 3. Listen for Messages
+    client.on('message', async (message) => {
+        const incomingMsg = message.body;
+        console.log(`Msg from ${message.from}: ${incomingMsg}`);
+
+        // Logic: "Category: Description"
+        if (incomingMsg.includes(':')) {
+            const parts = incomingMsg.split(':');
+            const categoryInput = parts[0].trim();
+            const description = parts[1].trim();
+
+            const validCategories = ["Garbage", "Road Defect", "Water Leak", "Streetlight Outage", "Other"];
+            
+            // Fuzzy match category
+            const category = validCategories.find(c => c.toLowerCase() === categoryInput.toLowerCase());
+
+            if (category) {
+                try {
+                    // Auto-Assign Dept Logic
+                    const deptMapping = {
+                        "Garbage": "Garbage", "Road Defect": "Road Defect", 
+                        "Water Leak": "Water Leak", "Streetlight Outage": "Streetlight Outage"
+                    };
+                    const targetDept = deptMapping[category];
+
+                    const newIssue = new Issue({
+                        ticketId: `WA-${uuidv4().split('-')[0].toUpperCase()}`,
+                        reportedBy: WHATSAPP_USER_ID,
+                        location: { type: 'Point', coordinates: [77.2090, 28.6139] }, // Default center
+                        ward: "WhatsApp Report",
+                        category: category,
+                        description: `(WhatsApp): ${description}`,
+                        imageUrl: "https://via.placeholder.com/300?text=No+Image",
+                        status: targetDept ? 'Assigned to Dept' : 'Received',
+                        assignedDepartment: targetDept,
+                        history: [{ status: 'Received', changedBy: 'WhatsApp Bot', timestamp: new Date() }]
+                    });
+
+                    await newIssue.save();
+
+                    // Reply to User
+                    message.reply(`✅ Ticket Created!\nID: *${newIssue.ticketId}*\nCategory: ${category}\nWe are working on it.`);
+                
+                } catch (error) {
+                    console.error(error);
+                    message.reply("❌ Error creating ticket.");
+                }
+            } else {
+                // Category not found
+                message.reply(`❌ Invalid Category.\nValid options: Garbage, Road Defect, Water Leak, Streetlight Outage.`);
+            }
+        } else {
+            // Greeting / Instructions
+            message.reply(`👋 *CivicResolve Bot*\n\nTo report an issue, send:\n*Category: Description*\n\nExample:\n*Garbage: Pile of trash on Main St*`);
+        }
+    });
+
+    client.initialize();
+};
+
+module.exports = initializeWhatsAppBot;

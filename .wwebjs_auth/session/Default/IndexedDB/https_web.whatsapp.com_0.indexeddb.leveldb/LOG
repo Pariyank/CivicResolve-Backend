@@ -1,0 +1,42 @@
+2026/02/02-03:45:31.221 1f48 Creating DB D:\CAPSTONE PROJECT\CIVIC RESOLVE\civic-resolve\server\.wwebjs_auth\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb since it was missing.
+2026/02/02-03:45:31.411 1f48 Reusing MANIFEST D:\CAPSTONE PROJECT\CIVIC RESOLVE\civic-resolve\server\.wwebjs_auth\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2026/02/02-03:47:42.971 1f48 Level-0 table #5: started
+2026/02/02-03:47:43.166 1f48 Level-0 table #5: 1027448 bytes OK
+2026/02/02-03:47:43.224 1f48 Delete type=0 #3
+2026/02/02-03:47:49.716 1f48 Level-0 table #7: started
+2026/02/02-03:47:49.889 1f48 Level-0 table #7: 1072398 bytes OK
+2026/02/02-03:47:50.055 1f48 Delete type=0 #4
+2026/02/02-03:47:50.328 1f48 Compacting 1@1 + 1@2 files
+2026/02/02-03:47:50.475 1f48 Generated table #8@1: 23482 keys, 993490 bytes
+2026/02/02-03:47:50.475 1f48 Compacted 1@1 + 1@2 files => 993490 bytes
+2026/02/02-03:47:50.522 1f48 compacted to: files[ 0 0 1 0 0 0 0 ]
+2026/02/02-03:47:50.524 1f48 Delete type=2 #5
+2026/02/02-03:47:50.524 1f48 Delete type=2 #7
+2026/02/02-03:48:01.111 2404 Level-0 table #10: started
+2026/02/02-03:48:01.335 2404 Level-0 table #10: 1180493 bytes OK
+2026/02/02-03:48:01.408 2404 Delete type=0 #6
+2026/02/02-03:48:02.165 3584 Compacting 1@1 + 1@2 files
+2026/02/02-03:48:02.628 3584 Generated table #11@1: 34263 keys, 1710798 bytes
+2026/02/02-03:48:02.628 3584 Compacted 1@1 + 1@2 files => 1710798 bytes
+2026/02/02-03:48:02.706 3584 compacted to: files[ 0 0 1 0 0 0 0 ]
+2026/02/02-03:48:02.708 3584 Delete type=2 #8
+2026/02/02-03:48:02.708 3584 Delete type=2 #10
+2026/02/02-03:48:14.840 2404 Level-0 table #13: started
+2026/02/02-03:48:15.080 2404 Level-0 table #13: 1029740 bytes OK
+2026/02/02-03:48:15.250 2404 Delete type=0 #9
+2026/02/02-03:48:15.872 1f48 Compacting 1@1 + 1@2 files
+2026/02/02-03:48:16.291 1f48 Generated table #14@1: 53259 keys, 2209231 bytes
+2026/02/02-03:48:16.291 1f48 Compacted 1@1 + 1@2 files => 2209231 bytes
+2026/02/02-03:48:16.434 1f48 compacted to: files[ 0 0 1 0 0 0 0 ]
+2026/02/02-03:48:16.435 1f48 Delete type=2 #11
+2026/02/02-03:48:16.436 1f48 Delete type=2 #13
+2026/02/02-03:48:44.816 1f48 Level-0 table #16: started
+2026/02/02-03:48:44.965 1f48 Level-0 table #16: 1030488 bytes OK
+2026/02/02-03:48:45.108 1f48 Delete type=0 #12
+2026/02/02-03:48:45.608 1f48 Compacting 1@1 + 1@2 files
+2026/02/02-03:48:45.876 1f48 Generated table #17@1: 49640 keys, 2208069 bytes
+2026/02/02-03:48:46.030 1f48 Generated table #18@1: 14519 keys, 347430 bytes
+2026/02/02-03:48:46.030 1f48 Compacted 1@1 + 1@2 files => 2555499 bytes
+2026/02/02-03:48:46.171 1f48 compacted to: files[ 0 0 2 0 0 0 0 ]
+2026/02/02-03:48:46.172 1f48 Delete type=2 #14
+2026/02/02-03:48:46.172 1f48 Delete type=2 #16
