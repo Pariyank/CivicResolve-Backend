@@ -10,8 +10,8 @@ const app = express();
 app.use(cors({
     origin: [
         'http://localhost:3000',
-        'https://civicresolve-ff157.web.app',
-        'https://civicresolve-ff157.firebaseapp.com'
+        'https://civic-resolves.web.app',
+        'https://civic-resolves.firebaseapp.com'
     ],
     credentials: true
 }));
