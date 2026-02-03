@@ -1,3 +1,25 @@
-2026/02/02-14:11:17.630 24c4 Reusing MANIFEST D:\CAPSTONE PROJECT\CIVIC RESOLVE\civic-resolve\server\.wwebjs_auth\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
-2026/02/02-14:11:17.741 24c4 Recovering log #15
-2026/02/02-14:11:17.755 24c4 Reusing old log D:\CAPSTONE PROJECT\CIVIC RESOLVE\civic-resolve\server\.wwebjs_auth\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/000015.log 
+2026/02/04-01:50:27.174 3a50 Reusing MANIFEST D:\CAPSTONE PROJECT\CIVIC RESOLVE\civic-resolve\server\.wwebjs_auth\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2026/02/04-01:50:27.267 3a50 Recovering log #15
+2026/02/04-01:50:27.300 3a50 Reusing old log D:\CAPSTONE PROJECT\CIVIC RESOLVE\civic-resolve\server\.wwebjs_auth\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/000015.log 
+2026/02/04-01:50:37.745 4a4c Level-0 table #21: started
+2026/02/04-01:50:37.934 4a4c Level-0 table #21: 1076337 bytes OK
+2026/02/04-01:50:38.001 4a4c Delete type=0 #15
+2026/02/04-01:50:38.008 4a4c Compacting 1@1 + 2@2 files
+2026/02/04-01:50:38.364 4a4c Generated table #22@1: 45548 keys, 2203378 bytes
+2026/02/04-01:50:38.713 4a4c Generated table #23@1: 40599 keys, 872813 bytes
+2026/02/04-01:50:38.726 4a4c Compacted 1@1 + 2@2 files => 3076191 bytes
+2026/02/04-01:50:38.925 4a4c compacted to: files[ 0 0 2 0 0 0 0 ]
+2026/02/04-01:50:38.926 4a4c Delete type=2 #17
+2026/02/04-01:50:38.926 4a4c Delete type=2 #18
+2026/02/04-01:50:38.926 4a4c Delete type=2 #21
+2026/02/04-01:50:55.643 3a50 Level-0 table #25: started
+2026/02/04-01:50:55.824 3a50 Level-0 table #25: 1067977 bytes OK
+2026/02/04-01:50:55.868 3a50 Delete type=0 #20
+2026/02/04-01:50:57.433 3d78 Compacting 1@1 + 2@2 files
+2026/02/04-01:50:57.639 3d78 Generated table #26@1: 38726 keys, 2195994 bytes
+2026/02/04-01:50:57.819 3d78 Generated table #27@1: 38803 keys, 962153 bytes
+2026/02/04-01:50:57.819 3d78 Compacted 1@1 + 2@2 files => 3158147 bytes
+2026/02/04-01:50:57.962 3d78 compacted to: files[ 0 0 2 0 0 0 0 ]
+2026/02/04-01:50:57.963 3d78 Delete type=2 #22
+2026/02/04-01:50:57.963 3d78 Delete type=2 #23
+2026/02/04-01:50:57.963 3d78 Delete type=2 #25

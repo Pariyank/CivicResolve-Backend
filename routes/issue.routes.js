@@ -7,21 +7,50 @@ const upload = require('../config/cloudinary');
 const adminAuth = require('../middleware/auth.middleware'); 
 const userAuth = require('../middleware/userAuth.middleware'); 
 
-// --- HANDLERS ---
+// --- DUPLICATE CHECK HANDLER ---
+const checkDuplicateHandler = async (req, res) => {
+    try {
+        const { lat, lng, category } = req.body;
+        
+        if (!lat || !lng || !category) {
+            return res.status(400).json({ message: "Missing location or category" });
+        }
+
+        // MongoDB Geospatial Query ($near)
+        // Checks for issues within 50 meters
+        const duplicates = await Issue.find({
+            location: {
+                $near: {
+                    $geometry: { type: "Point", coordinates: [parseFloat(lng), parseFloat(lat)] }, 
+                    $maxDistance: 50 
+                }
+            },
+            category: category,
+            // Only find 'Active' issues. 
+            status: { $nin: ['Resolved', 'Closed', 'Work Rejected'] } 
+        });
+
+        res.json(duplicates);
+    } catch (error) {
+        console.error("Duplicate Check Error:", error);
+        res.status(500).json({ message: "Server Error checking duplicates" });
+    }
+};
+
+// --- EXISTING HANDLERS (Briefly listed to maintain file structure) ---
 
 const reportIssueHandler = async (req, res) => {
     try {
         if (!req.user || !req.user.id) return res.status(401).json({ message: 'Auth failed' });
-        
         const { location, ward, category, description, isHazard } = req.body;
         let parsedLocation;
         try { parsedLocation = JSON.parse(location); } catch(e) { parsedLocation = { latitude: 0, longitude: 0 } }
 
+        // Auto-Assign Logic
         const deptMapping = {
             "Garbage": "Garbage", "Road Defect": "Road Defect", "Streetlight Outage": "Streetlight Outage",
             "Water Leak": "Water Leak", "Sewage Block": "Sewage Block", "Public Vandalism": "Public Vandalism", "Other": null
         };
-
         const targetDept = deptMapping[category];
         let initialStatus = targetDept ? 'Assigned to Dept' : 'Received';
         let assignedDept = targetDept || null;
@@ -61,17 +90,14 @@ const assignToDeptHandler = async (req, res) => {
         const { department } = req.body; 
         const issue = await Issue.findById(req.params.id);
         if(!issue) return res.status(404).json({ message: "Issue not found" });
-
         issue.assignedDepartment = department;
         issue.status = 'Assigned to Dept'; 
         issue.history.push({ status: 'Assigned to Dept', changedBy: 'Admin', timestamp: new Date() });
-
         await issue.save();
         res.json(issue);
     } catch (error) { res.status(500).json({ message: 'Database Error: ' + error.message }); }
 };
 
-// --- UPDATED: RESET FEEDBACK LOOP ---
 const updateStatusHandler = async (req, res) => {
     try {
         const { status, resolutionNote, resolutionCost } = req.body; 
@@ -79,12 +105,7 @@ const updateStatusHandler = async (req, res) => {
         if (!issue) return res.status(404).json({ message: 'Issue not found' });
 
         issue.status = status;
-        
-        // CRITICAL FIX: If marked Resolved (Re-work done), reset feedback to allow user to vote again
-        if (status === 'Resolved') {
-            issue.citizenFeedback = 'Pending';
-        }
-
+        if (status === 'Resolved') issue.citizenFeedback = 'Pending';
         if (resolutionNote) issue.resolutionNote = resolutionNote;
         if (resolutionCost) issue.resolutionCost = resolutionCost;
         if (req.file) issue.resolutionImageUrl = req.file.path;
@@ -99,36 +120,20 @@ const updateStatusHandler = async (req, res) => {
 
 const submitFeedbackHandler = async (req, res) => {
     try {
-        const { feedback } = req.body; // 'Satisfied' or 'Unsatisfied'
-        
+        const { feedback } = req.body;
         const issue = await Issue.findOne({ ticketId: req.params.ticketId });
         if (!issue) return res.status(404).json({ message: 'Issue not found' });
 
         issue.citizenFeedback = feedback;
-
-        // AUTOMATIC ESCALATION & RE-WORK LOGIC
         if (feedback === 'Unsatisfied') {
             issue.status = 'Escalated';
-            
-            // Archive old proof and clear current slot
-            if (issue.resolutionImageUrl) {
-                issue.previousResolutionUrl = issue.resolutionImageUrl;
-            }
+            if (issue.resolutionImageUrl) issue.previousResolutionUrl = issue.resolutionImageUrl;
             issue.resolutionImageUrl = ""; 
-            
-            issue.history.push({
-                status: 'Escalated',
-                changedBy: 'Citizen (Feedback)',
-                timestamp: new Date()
-            });
+            issue.history.push({ status: 'Escalated', changedBy: 'Citizen (Feedback)', timestamp: new Date() });
         }
-
         await issue.save();
         res.json({ message: 'Feedback submitted', issue });
-    } catch (error) {
-        console.error("Feedback Error:", error);
-        res.status(500).json({ message: 'Server error.' });
-    }
+    } catch (error) { res.status(500).json({ message: 'Server error.' }); }
 };
 
 const getDeptIssuesHandler = async (req, res) => {
@@ -151,20 +156,15 @@ const assignToWorkerHandler = async (req, res) => {
     } catch (error) { res.status(500).json({ message: error.message }); }
 };
 
-// --- UPDATED: WORKER COMPLETION RESETS FEEDBACK ---
 const workerCompleteHandler = async (req, res) => {
     try {
         const { note, resolutionCost } = req.body;
         const issue = await Issue.findById(req.params.id);
-        
         issue.status = 'Resolved';
-        // CRITICAL FIX: Reset feedback loop so citizen sees buttons again
         issue.citizenFeedback = 'Pending';
-
         issue.resolutionNote = note;
         if (resolutionCost) issue.resolutionCost = resolutionCost;
         if (req.file) issue.resolutionImageUrl = req.file.path;
-        
         issue.history.push({ status: 'Resolved', changedBy: 'Worker' });
         await issue.save();
         res.json(issue);
@@ -202,24 +202,6 @@ const getPublicMapHandler = async (req, res) => {
     } catch (error) { res.status(500).json({ message: error.message }); }
 };
 
-const checkDuplicateHandler = async (req, res) => {
-    try {
-        const { lat, lng, category } = req.body;
-        if (!lat || !lng || !category) return res.status(400).json({ message: "Missing data" });
-        const duplicates = await Issue.find({
-            location: {
-                $near: {
-                    $geometry: { type: "Point", coordinates: [parseFloat(lng), parseFloat(lat)] },
-                    $maxDistance: 50
-                }
-            },
-            category: category,
-            status: { $nin: ['Resolved', 'Closed'] }
-        });
-        res.json(duplicates);
-    } catch (error) { res.status(500).json({ message: "Server Error" }); }
-};
-
 const getStatsHandler = async (req, res) => {
     try {
         const total = await Issue.countDocuments();
@@ -233,7 +215,7 @@ const getStatsHandler = async (req, res) => {
 
 // --- ROUTES ---
 router.post('/report', userAuth, upload.single('issueImage'), reportIssueHandler);
-router.post('/check-duplicate', userAuth, checkDuplicateHandler);
+router.post('/check-duplicate', userAuth, checkDuplicateHandler); // <--- NEW ROUTE
 router.get('/my-issues', userAuth, getMyIssuesHandler);
 router.get('/track/:ticketId', async (req, res) => res.json(await Issue.findOne({ ticketId: req.params.ticketId })));
 router.get('/stats', getStatsHandler);
