@@ -1,2 +1,3 @@
-2026/02/02-03:45:21.865 48e8 Creating DB D:\CAPSTONE PROJECT\CIVIC RESOLVE\civic-resolve\server\.wwebjs_auth\session\Default\Site Characteristics Database since it was missing.
-2026/02/02-03:45:22.318 48e8 Reusing MANIFEST D:\CAPSTONE PROJECT\CIVIC RESOLVE\civic-resolve\server\.wwebjs_auth\session\Default\Site Characteristics Database/MANIFEST-000001
+2026/02/04-01:50:22.499 4984 Reusing MANIFEST D:\CAPSTONE PROJECT\CIVIC RESOLVE\civic-resolve\server\.wwebjs_auth\session\Default\Site Characteristics Database/MANIFEST-000001
+2026/02/04-01:50:22.526 4984 Recovering log #3
+2026/02/04-01:50:22.527 4984 Reusing old log D:\CAPSTONE PROJECT\CIVIC RESOLVE\civic-resolve\server\.wwebjs_auth\session\Default\Site Characteristics Database/000003.log 
