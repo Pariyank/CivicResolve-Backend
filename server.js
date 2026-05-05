@@ -3,7 +3,6 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 
-// IMPORT THE NEW BOT
 const initializeWhatsAppBot = require('./services/whatsappBot');
 
 connectDB();
@@ -33,8 +32,6 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server started on port ${PORT}`);
     
-    
-    // Only run WhatsApp Bot if we are NOT on Render
   
     if (!process.env.RENDER) {
         console.log("Running Locally: Starting WhatsApp Bot...");
