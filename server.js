@@ -34,9 +34,14 @@ app.listen(PORT, () => {
     
   
     if (!process.env.RENDER) {
-        console.log("Running Locally: Starting WhatsApp Bot...");
-        initializeWhatsAppBot();
+        try {
+            const initializeWhatsAppBot = require('./services/whatsappBot');
+            console.log("Running Locally: Starting WhatsApp Bot...");
+            initializeWhatsAppBot();
+        } catch (err) {
+            console.log("WhatsApp Bot could not be started locally:", err.message);
+        }
     } else {
-        console.log("Running on Cloud: WhatsApp Bot disabled to prevent crash (Free Tier Limit).");
+        console.log("Running on Cloud: WhatsApp Bot ignored to prevent crash.");
     }
 });
